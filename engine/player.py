@@ -34,6 +34,11 @@ class Player:
         OFFENSIVE: shift x_pct +20% toward opponent goal (capped at 0.90)
         DEFENSIVE: shift x_pct -20% toward own goal (floored at 0.05)
         Second half: mirror x_pct (teams swap ends).
+
+        Note: `team_mode` must be passed from the calling Team's perspective.
+        The Team class handles this — home and away teams both pass the same
+        ai_mode string and the x_pct mirroring in `_anchor_pixels` handles
+        the directionality.
         """
         x_pct = self.anchor_x_pct
         y_pct = self.anchor_y_pct
@@ -101,7 +106,6 @@ def get_active_player(players, ball_pos, current_idx, hold_frames):
             best_idx = i
         elif abs(d - best_dist) < 0.001 and i < best_idx:
             best_idx = i
-            best_dist = d
 
     return best_idx
 
