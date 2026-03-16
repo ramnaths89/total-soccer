@@ -1,7 +1,4 @@
 # main.py
-import os
-os.environ.setdefault('SDL_VIDEODRIVER', 'directx')  # Windows default
-
 import pygame
 import sys
 from settings import SCREEN_W, SCREEN_H, FPS, BLACK
