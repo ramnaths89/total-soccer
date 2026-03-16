@@ -42,7 +42,11 @@ class Match:
         self.last_event = None
 
         if self.state == 'KICKOFF':
-            if keys_p1 is not None and any(keys_p1):
+            # Auto-advance for CPU vs CPU, otherwise wait for human key press
+            if (self.home_team.controlled_by == 'CPU'
+                    and self.away_team.controlled_by == 'CPU'):
+                self.state = 'PLAYING'
+            elif keys_p1 is not None and any(keys_p1):
                 self.state = 'PLAYING'
 
         elif self.state == 'PLAYING':

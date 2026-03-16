@@ -13,6 +13,12 @@ class TournamentBracket:
     def __init__(self, teams, player_team_name):
         self.teams = list(teams)
         random.shuffle(self.teams)
+        # Ensure player team is always home (index 0) in their first match
+        for i, t in enumerate(self.teams):
+            if t['name'] == player_team_name:
+                # Swap to position 0 so player is home in match 0
+                self.teams[0], self.teams[i] = self.teams[i], self.teams[0]
+                break
         self.player_team_name = player_team_name
         self.champion = None
         self.current_round_matches = self._pairs(self.teams)
