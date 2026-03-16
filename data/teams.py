@@ -106,7 +106,7 @@ TEAMS = {
         {"name": "Clermont",    "short_name": "CLE", "kit_primary": "#CC0000", "kit_secondary": "#F5A623", "rating": 1},
         {"name": "Le Havre",    "short_name": "LEH", "kit_primary": "#005FAE", "kit_secondary": "#FFFFFF", "rating": 1},
         {"name": "Metz",        "short_name": "MET", "kit_primary": "#7B2582", "kit_secondary": "#000000", "rating": 1},
-        {"name": "Brest",       "short_name": "BRE", "kit_primary": "#CC0000", "kit_secondary": "#FFFFFF", "rating": 2},
+        {"name": "Brest",       "short_name": "BST", "kit_primary": "#CC0000", "kit_secondary": "#FFFFFF", "rating": 2},
     ],
 }
 
