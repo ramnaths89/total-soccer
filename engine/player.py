@@ -69,10 +69,23 @@ class Player:
         """
         if self.vel.length() >= 0.1:
             return self.vel.normalize()
+        return self.get_shoot_direction()
+
+    def get_shoot_direction(self):
+        """Always kick toward the center of the opponent goal."""
         target = (pygame.Vector2(PITCH_RIGHT, CENTRE_Y) if self.team_side == 'home'
                   else pygame.Vector2(PITCH_LEFT, CENTRE_Y))
         diff = target - self.pos
         return diff.normalize() if diff.length() > 0 else pygame.Vector2(1, 0)
+
+    def get_pass_direction(self, teammates):
+        """Kick toward the nearest teammate (excluding self)."""
+        others = [p for p in teammates if p is not self]
+        if not others:
+            return self.get_shoot_direction()
+        nearest = min(others, key=lambda p: (p.pos - self.pos).length())
+        diff = nearest.pos - self.pos
+        return diff.normalize() if diff.length() > 0 else self.get_shoot_direction()
 
     def draw(self, surface, kit_primary, kit_secondary):
         if self._font is None:

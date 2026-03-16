@@ -77,11 +77,13 @@ class Match:
         if self.home_team.controlled_by != 'CPU':
             self._handle_human_input(self.home_team, keys_p1,
                                      pygame.K_w, pygame.K_s, pygame.K_a, pygame.K_d,
-                                     pygame.K_LSHIFT)
+                                     pygame.K_LSHIFT,
+                                     k_shoot=pygame.K_h, k_pass=pygame.K_j)
         if self.away_team.controlled_by != 'CPU':
             self._handle_human_input(self.away_team, keys_p2,
                                      pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT,
-                                     pygame.K_RIGHT, pygame.K_RCTRL)
+                                     pygame.K_RIGHT, pygame.K_RCTRL,
+                                     k_shoot=pygame.K_KP0, k_pass=pygame.K_KP_PERIOD)
 
         # AI for all non-human-active players
         all_players = self.home_team.players + self.away_team.players
@@ -119,7 +121,8 @@ class Match:
         if self.state == 'PLAYING':
             self._check_full_time()
 
-    def _handle_human_input(self, team, keys, k_up, k_down, k_left, k_right, k_kick):
+    def _handle_human_input(self, team, keys, k_up, k_down, k_left, k_right, k_kick,
+                            k_shoot=None, k_pass=None):
         if keys is None:
             return
         player = team.get_active_player()
@@ -134,13 +137,23 @@ class Match:
         # Clamp to pitch
         player.pos.x = max(PITCH_LEFT, min(PITCH_RIGHT, player.pos.x))
         player.pos.y = max(PITCH_TOP, min(PITCH_BOTTOM, player.pos.y))
-        # Kick
-        if keys[k_kick]:
-            dist = (player.pos - self.ball.pos).length()
-            if dist < PLAYER_RADIUS + BALL_RADIUS + 4:
-                power = KICK_POWER_BASE * (team.rating / 5.0)
-                self.ball.kick(player.get_kick_direction(), power)
-                self.ball.last_touch_team = team.side
+        # Kick (generic direction)
+        dist = (player.pos - self.ball.pos).length()
+        in_range = dist < PLAYER_RADIUS + BALL_RADIUS + 4
+        power = KICK_POWER_BASE * (team.rating / 5.0)
+        if k_shoot and keys[k_shoot] and in_range:
+            # Dedicated shoot: always aim at opponent goal
+            self.ball.kick(player.get_shoot_direction(), power)
+            self.ball.last_touch_team = team.side
+        elif k_pass and keys[k_pass] and in_range:
+            # Dedicated pass: aim at nearest teammate
+            teammates = team.players
+            self.ball.kick(player.get_pass_direction(teammates), power * 0.75)
+            self.ball.last_touch_team = team.side
+        elif keys[k_kick] and in_range:
+            # Legacy kick: velocity-based direction
+            self.ball.kick(player.get_kick_direction(), power)
+            self.ball.last_touch_team = team.side
 
     # ----------------------------------------------------------------
     # Goal + timing
