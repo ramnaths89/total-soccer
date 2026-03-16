@@ -8,6 +8,7 @@ from settings import (
     CENTRE_X, CENTRE_Y, PLAYER_RADIUS, BALL_RADIUS, KICK_POWER_BASE,
     GOAL_PAUSE_MS, HALF_TIME_PAUSE_MS, SET_PIECE_WAIT_FRAMES,
     PLAYER_SPEED,
+    DRIBBLE_SPEED_THRESHOLD, DRIBBLE_PUSH_FRACTION, KIT_CLASH_THRESHOLD,
 )
 
 
@@ -23,6 +24,8 @@ class Match:
         self.home_team = Team(home_data, 'home', home_controlled_by)
         self.away_team = Team(away_data, 'away', away_controlled_by)
         self.ball = Ball()
+        # Kit clash detection: if kits are too similar, away team uses their away kit
+        self._resolve_kit_clash()
         self.difficulty = difficulty
 
         self.state = 'KICKOFF'
@@ -33,6 +36,39 @@ class Match:
         self.pause_frames = 0
         self.set_piece_wait = 0
         self.last_event = None
+
+    def _resolve_kit_clash(self):
+        """Give away team their secondary kit if primary kits clash with home."""
+        def _dist(h1, h2):
+            r1 = tuple(int(h1.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
+            r2 = tuple(int(h2.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
+            return sum((a - b) ** 2 for a, b in zip(r1, r2)) ** 0.5
+
+        home_pri  = self.home_team.kit_primary
+        away_pri  = self.away_team.kit_primary
+        away_sec  = self.away_team.kit_secondary
+        if _dist(home_pri, away_pri) < KIT_CLASH_THRESHOLD:
+            # Away switches to secondary; their secondary becomes primary colour
+            self.away_team.match_kit_primary   = away_sec
+            self.away_team.match_kit_secondary = away_pri
+
+    def _apply_dribble_control(self, team):
+        """
+        When the active human player is in contact with a slow-moving ball
+        and is moving, gently guide the ball in front of them (dribbling).
+        """
+        if team.controlled_by == 'CPU':
+            return
+        player = team.get_active_player()
+        dist = (player.pos - self.ball.pos).length()
+        touch_range = 18  # PLAYER_RADIUS + BALL_RADIUS + slack
+        if (dist < touch_range
+                and player.vel.length() > 0.1
+                and self.ball.vel.length() < DRIBBLE_SPEED_THRESHOLD):
+            push_target = player.pos + player.vel.normalize() * (touch_range - 2)
+            self.ball.pos += (push_target - self.ball.pos) * DRIBBLE_PUSH_FRACTION
+            self.ball.vel  = player.vel * 1.05
+            self.ball.last_touch_team = team.side
 
     # ----------------------------------------------------------------
     # Public update
@@ -100,6 +136,10 @@ class Match:
         self.away_team.update_ai_mode(self.ball.pos)
         self.home_team.update_active_player(self.ball.pos)
         self.away_team.update_active_player(self.ball.pos)
+
+        # Dribble control for human-controlled teams
+        self._apply_dribble_control(self.home_team)
+        self._apply_dribble_control(self.away_team)
 
         # Ball physics
         self.ball.update()

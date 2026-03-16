@@ -40,6 +40,8 @@ BALL_RADIUS     = 6
 BALL_FRICTION   = 0.97          # velocity multiplier per frame
 KICK_POWER_BASE = 12            # px/frame, scaled by player rating/5
 BALL_STOP_THRESHOLD = 0.05      # vel length below this → zero velocity
+DRIBBLE_SPEED_THRESHOLD = 3.0   # ball speed below which human dribbling activates
+DRIBBLE_PUSH_FRACTION   = 0.55  # how strongly ball is guided when dribbling
 
 # --- Players ---
 PLAYER_RADIUS    = 10
@@ -52,8 +54,9 @@ PLAYER_SPEED = {
 }
 
 # Active player switching hysteresis
-ACTIVE_SWITCH_HYSTERESIS  = 30   # px: challenger must be this much closer to trigger switch
-ACTIVE_SWITCH_MIN_FRAMES  = 10   # frames to hold before re-evaluating
+ACTIVE_SWITCH_HYSTERESIS  = 60   # px: challenger must be this much closer to trigger switch
+ACTIVE_SWITCH_MIN_FRAMES  = 15   # frames to hold before re-evaluating
+POSSESSION_LOCK_RADIUS    = 18   # px: if active player within this range of ball, never auto-switch
 
 # --- Match timing ---
 DEFAULT_MATCH_MINUTES  = 5
@@ -81,3 +84,6 @@ GRAY       = (150, 150, 150)
 DARK_GRAY  = (50,  50,  50)
 PITCH_GREEN      = (45,  100, 35)
 PITCH_GREEN_ALT  = (40,  90,  30)
+
+# --- Kit clash detection ---
+KIT_CLASH_THRESHOLD = 80  # Euclidean RGB distance below which kits are considered clashing

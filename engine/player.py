@@ -87,15 +87,49 @@ class Player:
         diff = nearest.pos - self.pos
         return diff.normalize() if diff.length() > 0 else self.get_shoot_direction()
 
-    def draw(self, surface, kit_primary, kit_secondary):
+    def draw(self, surface, kit_primary, kit_secondary, ball_pos=None):
+        """Draw Sensible-Soccer-style sprite: legs → body → head → number."""
         if self._font is None:
-            self._font = pygame.font.SysFont(None, 14)
-        color  = _hex_to_rgb(kit_primary)
-        border = _hex_to_rgb(kit_secondary)
-        pygame.draw.circle(surface, color,  (int(self.pos.x), int(self.pos.y)), PLAYER_RADIUS)
-        pygame.draw.circle(surface, border, (int(self.pos.x), int(self.pos.y)), PLAYER_RADIUS, 2)
-        num_surf = self._font.render(str(self.number), True, border)
-        surface.blit(num_surf, num_surf.get_rect(center=(int(self.pos.x), int(self.pos.y))))
+            self._font = pygame.font.SysFont(None, 10)
+
+        kit_col   = _hex_to_rgb(kit_primary)
+        short_col = _hex_to_rgb(kit_secondary)
+        skin_col  = (220, 185, 140)
+        hair_col  = (70,  45,  15)
+
+        # Determine facing direction
+        if self.vel.length() > 0.5:
+            facing = self.vel.normalize()
+        elif ball_pos is not None:
+            diff = ball_pos - self.pos
+            facing = diff.normalize() if diff.length() > 1 else pygame.Vector2(0, 1)
+        else:
+            facing = pygame.Vector2(0, 1)
+
+        right = pygame.Vector2(-facing.y, facing.x)
+
+        # 1. Legs / boots (behind body, kit_secondary colour)
+        leg_base = self.pos - facing * 5
+        lfoot    = leg_base - right * 3
+        rfoot    = leg_base + right * 3
+        pygame.draw.circle(surface, short_col,
+                           (int(lfoot.x), int(lfoot.y)), 3)
+        pygame.draw.circle(surface, short_col,
+                           (int(rfoot.x), int(rfoot.y)), 3)
+
+        # 2. Body (jersey colour)
+        pos_i = (int(self.pos.x), int(self.pos.y))
+        pygame.draw.circle(surface, kit_col, pos_i, 7)
+        pygame.draw.circle(surface, _darken(kit_col), pos_i, 7, 1)
+
+        # 3. Head (skin, offset forward in facing direction)
+        head = self.pos + facing * 6
+        pygame.draw.circle(surface, skin_col, (int(head.x), int(head.y)), 4)
+        pygame.draw.circle(surface, hair_col, (int(head.x), int(head.y)), 4, 1)
+
+        # 4. Squad number on body
+        num_surf = self._font.render(str(self.number), True, (255, 255, 255))
+        surface.blit(num_surf, num_surf.get_rect(center=pos_i))
 
 
 def get_active_player(players, ball_pos, current_idx, hold_frames):
@@ -121,6 +155,11 @@ def get_active_player(players, ball_pos, current_idx, hold_frames):
             best_idx = i
 
     return best_idx
+
+
+def _darken(rgb, factor=0.65):
+    """Return a darker version of an RGB tuple."""
+    return tuple(max(0, int(c * factor)) for c in rgb)
 
 
 def _hex_to_rgb(hex_str):

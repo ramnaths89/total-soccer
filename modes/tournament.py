@@ -176,8 +176,9 @@ class TournamentMode:
         elif self.phase == 'match' and self.match:
             surface.fill(BLACK)
             draw_pitch(surface)
-            self.match.home_team.draw(surface)
-            self.match.away_team.draw(surface)
+            ball_pos = self.match.ball.pos
+            self.match.home_team.draw(surface, ball_pos=ball_pos)
+            self.match.away_team.draw(surface, ball_pos=ball_pos)
             self.match.ball.draw(surface)
             self.hud.draw(surface, self.match)
             rnd = self.font_s.render(self.bracket.round_name, True, (150, 150, 150))

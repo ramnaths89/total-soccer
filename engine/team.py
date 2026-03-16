@@ -1,7 +1,7 @@
 # engine/team.py
 import pygame
 from engine.player import Player, get_active_player
-from settings import CENTRE_X, ACTIVE_SWITCH_MIN_FRAMES
+from settings import CENTRE_X, ACTIVE_SWITCH_MIN_FRAMES, POSSESSION_LOCK_RADIUS
 
 
 # 4-4-2 formation: (role, x_pct, y_pct) — home-team perspective
@@ -34,6 +34,9 @@ class Team:
         self._hold_frames  = ACTIVE_SWITCH_MIN_FRAMES
 
         self.players = self._create_players()
+        # match_kit may be overridden by Match if kits clash with the opponent
+        self.match_kit_primary   = self.kit_primary
+        self.match_kit_secondary = self.kit_secondary
 
     def _create_players(self):
         return [Player(number=i + 1, role=role, team_side=self.side,
@@ -47,6 +50,13 @@ class Team:
             self.ai_mode = 'OFFENSIVE' if ball_pos.x < CENTRE_X else 'DEFENSIVE'
 
     def update_active_player(self, ball_pos):
+        active = self.players[self._active_idx]
+        # Possession lock: never auto-switch away from a player who is touching the ball
+        if (active.pos - ball_pos).length() < POSSESSION_LOCK_RADIUS:
+            self._hold_frames += 1
+            for i, p in enumerate(self.players):
+                p.is_active = (i == self._active_idx)
+            return
         new_idx = get_active_player(self.players, ball_pos,
                                     self._active_idx, self._hold_frames)
         if new_idx != self._active_idx:
@@ -70,9 +80,10 @@ class Team:
             player.vel = pygame.Vector2(0, 0)
         self._hold_frames = ACTIVE_SWITCH_MIN_FRAMES
 
-    def draw(self, surface):
+    def draw(self, surface, ball_pos=None):
         for player in self.players:
-            player.draw(surface, self.kit_primary, self.kit_secondary)
+            player.draw(surface, self.match_kit_primary, self.match_kit_secondary,
+                        ball_pos=ball_pos)
             if player.is_active:
                 pygame.draw.circle(surface, (255, 255, 0),
                                    (int(player.pos.x), int(player.pos.y)), 14, 2)

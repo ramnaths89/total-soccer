@@ -104,22 +104,29 @@ def _update_gk(player, ball, team):
 def try_kick(player, ball, team, difficulty='Medium'):
     """
     If player is in kick range, kick the ball.
+    Decides shoot vs pass based on role and randomness.
     Returns True if kick was made.
-    Inaccuracy: noise is in degrees (not radians). Easy=~23°, Hard=~3°.
     """
     dist = (player.pos - ball.pos).length()
     if dist > PLAYER_RADIUS + BALL_RADIUS + 4:
         return False
 
-    diff_cfg = AI_DIFFICULTY[difficulty]
-    direction = player.get_kick_direction()
+    diff_cfg  = AI_DIFFICULTY[difficulty]
+    power     = KICK_POWER_BASE * (team.rating / 5.0)
 
-    # Angle noise in degrees: (1 - accuracy) * 40° max spread
-    max_noise_deg = (1.0 - diff_cfg['accuracy']) * 40.0
-    noise_deg = random.uniform(-max_noise_deg, max_noise_deg)
-    direction = direction.rotate(noise_deg)
+    # Pass probability: midfielders and defenders pass more; forwards shoot more
+    pass_chance = {'GK': 0.7, 'DEF': 0.5, 'MID': 0.4, 'FWD': 0.15}.get(player.role, 0.3)
+    teammates   = [p for p in team.players if p is not player]
 
-    power = KICK_POWER_BASE * (team.rating / 5.0)
-    ball.kick(direction, power)
+    if teammates and random.random() < pass_chance:
+        direction = player.get_pass_direction(team.players)
+        ball.kick(direction, power * 0.75)
+    else:
+        direction = player.get_shoot_direction()
+        max_noise_deg = (1.0 - diff_cfg['accuracy']) * 40.0
+        noise_deg     = random.uniform(-max_noise_deg, max_noise_deg)
+        direction     = direction.rotate(noise_deg)
+        ball.kick(direction, power)
+
     ball.last_touch_team = team.side
     return True

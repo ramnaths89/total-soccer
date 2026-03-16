@@ -58,7 +58,8 @@ class QuickMatchMode:
         surface.fill(BLACK)
         if self.match:
             draw_pitch(surface)
-            self.match.home_team.draw(surface)
-            self.match.away_team.draw(surface)
+            ball_pos = self.match.ball.pos
+            self.match.home_team.draw(surface, ball_pos=ball_pos)
+            self.match.away_team.draw(surface, ball_pos=ball_pos)
             self.match.ball.draw(surface)
             self.hud.draw(surface, self.match)
