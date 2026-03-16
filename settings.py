@@ -39,6 +39,7 @@ PENALTY_H = 200   # vertical span centered on CENTRE_Y
 BALL_RADIUS     = 6
 BALL_FRICTION   = 0.97          # velocity multiplier per frame
 KICK_POWER_BASE = 12            # px/frame, scaled by player rating/5
+BALL_STOP_THRESHOLD = 0.05      # vel length below this → zero velocity
 
 # --- Players ---
 PLAYER_RADIUS    = 10

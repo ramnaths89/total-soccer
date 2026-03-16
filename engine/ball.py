@@ -1,7 +1,7 @@
 # engine/ball.py
 import pygame
 from settings import (
-    CENTRE_X, CENTRE_Y, BALL_FRICTION, BALL_RADIUS,
+    CENTRE_X, CENTRE_Y, BALL_FRICTION, BALL_RADIUS, BALL_STOP_THRESHOLD,
     PITCH_LEFT, PITCH_RIGHT, PITCH_TOP, PITCH_BOTTOM,
     GOAL_TOP, GOAL_BOTTOM,
 )
@@ -16,6 +16,7 @@ class Ball:
     def reset(self):
         self.pos = pygame.Vector2(CENTRE_X, CENTRE_Y)
         self.vel = pygame.Vector2(0, 0)
+        self.last_touch_team = None
 
     def kick(self, direction, power):
         """Set ball velocity. direction is normalized internally."""
@@ -26,7 +27,7 @@ class Ball:
         """Advance ball one frame: move + apply friction."""
         self.pos += self.vel
         self.vel *= BALL_FRICTION
-        if self.vel.length() < 0.05:
+        if self.vel.length() < BALL_STOP_THRESHOLD:
             self.vel = pygame.Vector2(0, 0)
 
     def check_goal(self):

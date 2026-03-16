@@ -116,3 +116,16 @@ class TestBallBoundary:
         ball.pos = pygame.Vector2(PITCH_RIGHT + 5, 200)
         ball.last_touch_team = 'home'
         assert ball.check_boundary() == 'goal_kick'
+
+    def test_reset_clears_last_touch_team(self):
+        ball = Ball()
+        ball.last_touch_team = 'home'
+        ball.reset()
+        assert ball.last_touch_team is None
+
+    def test_boundary_none_last_touch_defaults_to_goal_kick(self):
+        """When last_touch_team is None, boundary defaults to goal_kick (documented behavior)."""
+        ball = Ball()
+        ball.pos = pygame.Vector2(PITCH_LEFT - 5, 200)
+        ball.last_touch_team = None
+        assert ball.check_boundary() == 'goal_kick'
