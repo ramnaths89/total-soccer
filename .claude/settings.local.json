@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash \"C:\\\\Users\\\\ramna\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\5.0.2\\\\skills\\\\brainstorming\\\\scripts\\\\start-server.sh\" --project-dir \"C:\\\\Users\\\\ramna\\\\OneDrive\\\\82 GenAI Dev\\\\ClaudeAI\\\\94 Test - Total Soccer\")",
+      "Bash(curl -s http://localhost:57575)",
+      "Bash(pip install:*)"
+    ]
+  }
+}
